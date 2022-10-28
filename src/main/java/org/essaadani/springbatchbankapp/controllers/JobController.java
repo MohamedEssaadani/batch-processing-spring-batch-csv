@@ -1,5 +1,6 @@
 package org.essaadani.springbatchbankapp.controllers;
 
+import org.essaadani.springbatchbankapp.BankTransactionItemAnalyticsProcessor;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
@@ -14,14 +15,15 @@ import java.util.Map;
 
 @RestController
 public class JobController {
+    @Autowired
     private JobLauncher jobLauncher;
 
+    @Autowired
     private Job job;
 
-    public JobController(JobLauncher jobLauncher, Job job) {
-        this.jobLauncher = jobLauncher;
-        this.job = job;
-    }
+    @Autowired
+    BankTransactionItemAnalyticsProcessor bankTransactionItemAnalyticsProcessor;
+
 
     @GetMapping("/startLoadJob")
     public BatchStatus load() throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
@@ -39,4 +41,15 @@ public class JobController {
         return jobExecution.getStatus();
 
     }
+
+    @GetMapping("/analytics")
+    public Map<String, Double> analytics(){
+        Map<String, Double> analytics = new HashMap<>();
+        analytics.put("totalCredit", bankTransactionItemAnalyticsProcessor.getTotalCredit());
+        analytics.put("totalDebit", bankTransactionItemAnalyticsProcessor.getTotalDebit());
+
+        return analytics;
+    }
 }
+
+

@@ -1,3 +1,4 @@
 transaction_id,account_number,transaction_date,transaction_type,transaction_amount
 540300,2115566,01/01/2022-09:44,D,15656.55
 540380,299966,01/01/2022-09:44,D,15656.55
+540380,299966,01/01/2022-09:44,C,15656.55

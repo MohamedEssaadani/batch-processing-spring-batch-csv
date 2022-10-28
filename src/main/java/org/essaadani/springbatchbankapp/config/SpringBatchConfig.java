@@ -1,5 +1,7 @@
 package org.essaadani.springbatchbankapp.config;
 
+import org.essaadani.springbatchbankapp.BankTransactionItemAnalyticsProcessor;
+import org.essaadani.springbatchbankapp.BankTransactionItemProcessor;
 import org.essaadani.springbatchbankapp.entities.BankTransaction;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -15,11 +17,15 @@ import org.springframework.batch.item.file.LineMapper;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
+import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Configuration
@@ -33,15 +39,15 @@ public class SpringBatchConfig {
     private ItemReader<BankTransaction> bankTransactionItemReader;
     @Autowired
     private ItemWriter<BankTransaction> bankTransactionItemWriter;
-    @Autowired
-    private ItemProcessor<BankTransaction, BankTransaction> bankTransactionItemProcessor;
+//    @Autowired
+//    private ItemProcessor<BankTransaction, BankTransaction> bankTransactionItemProcessor;
 
     @Bean
     public Job transactionJob(){
         Step step = stepBuilderFactory.get("step-load-transaction")
                 .<BankTransaction, BankTransaction>chunk(100)
                 .reader(bankTransactionItemReader)
-                .processor(bankTransactionItemProcessor)
+                .processor(compositeItemProcessor())
                 .writer(bankTransactionItemWriter)
                 .build();
 
@@ -49,6 +55,31 @@ public class SpringBatchConfig {
                 .start(step)
                 .build();
     }
+
+    // composite item processor
+
+    @Bean
+    public ItemProcessor<BankTransaction,BankTransaction> compositeItemProcessor() {
+        List<ItemProcessor<BankTransaction, BankTransaction>> itemProcessors = new ArrayList<>();
+        itemProcessors.add(itemProcessor());
+        itemProcessors.add(itemProcessorTwo());
+
+        CompositeItemProcessor<BankTransaction, BankTransaction> compositeItemProcessor = new CompositeItemProcessor<>();
+        compositeItemProcessor.setDelegates(itemProcessors);
+
+        return compositeItemProcessor;
+    }
+
+    @Bean
+     BankTransactionItemProcessor itemProcessor(){
+        return new BankTransactionItemProcessor();
+    }
+
+    @Bean
+    BankTransactionItemAnalyticsProcessor itemProcessorTwo(){
+        return new BankTransactionItemAnalyticsProcessor();
+    }
+
 
     // Item Reader
     @Bean
